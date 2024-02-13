@@ -3,17 +3,29 @@ import Exercise from '../models/exerciseModel.js';
 
 const router = express.Router();
 
-router.get('/',async (req,res)=>{
+router.get('/', async (req, res) => {
+    try {
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 5;
+        const skip = (page - 1) * limit;
 
-    try{
-        const allWorkouts = await Exercise.find({});
-        return res.json(allWorkouts);
+        const totalCount = await Exercise.countDocuments({});
+
+        const allWorkouts = await Exercise.find({})
+            .skip(skip)
+            .limit(limit);
+
+        return res.json({
+            totalCount: totalCount,
+            totalPages: Math.ceil(totalCount / limit),
+            workouts: allWorkouts
+        });
+    } catch (error) {
+        return res.status(500).json(error);
     }
-    catch (error) {
-        return res.json(error);
-    }
-    
-})
+});
+
+
 
 router.get('/exercise/:id',async (req,res)=>{
 
